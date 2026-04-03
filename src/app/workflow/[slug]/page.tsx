@@ -8,7 +8,7 @@ import {
   getRelatedWorkflows,
   CATEGORY_LABELS,
 } from "@/lib/workflows";
-import { isVoted, toggleVote, isTried, toggleTried } from "@/lib/storage";
+import { isVoted, toggleVote, isTried, toggleTried, isBookmarked, toggleBookmark } from "@/lib/storage";
 import TrendGraph from "@/components/TrendGraph";
 import ToolBadge from "@/components/ToolBadge";
 import WorkflowCanvas from "@/components/WorkflowCanvas";
@@ -86,10 +86,12 @@ export default function WorkflowPage({
 
   const [voted, setVoted] = useState(false);
   const [triedIt, setTriedIt] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     setVoted(isVoted(slug));
     setTriedIt(isTried(slug));
+    setSaved(isBookmarked(slug));
   }, [slug]);
 
   const difficultyColor = {
@@ -203,6 +205,28 @@ export default function WorkflowPage({
                     />
                   </svg>
                   {triedIt ? "Tried it" : "Mark as tried"}
+                </button>
+                <button
+                  onClick={() => {
+                    toggleBookmark(slug);
+                    setSaved(!saved);
+                  }}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-medium border transition-colors ${
+                    saved
+                      ? "border-accent/30 bg-accent/10 text-accent"
+                      : "border-border bg-white text-muted hover:text-foreground"
+                  }`}
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill={saved ? "currentColor" : "none"}
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                  </svg>
+                  {saved ? "Saved" : "Save to toolkit"}
                 </button>
               </div>
             </div>

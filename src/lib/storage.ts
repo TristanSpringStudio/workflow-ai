@@ -17,11 +17,27 @@ export interface WorkflowSubmission {
   submittedAt: string;
 }
 
+// Custom workflow from generator
+export interface CustomWorkflow {
+  id: string;
+  title: string;
+  trigger: string;
+  steps: { title: string; body: string }[];
+  decisionPoints: { question: string; aiSays: string; youDecide: string }[];
+  output: string;
+  aiHelps: string[];
+  youCall: string[];
+  tools: string[];
+  createdAt: string;
+}
+
 const KEYS = {
   profile: "wai-profile",
   votes: "wai-votes",
   tried: "wai-tried",
   submissions: "wai-submissions",
+  bookmarks: "wai-bookmarks",
+  customWorkflows: "wai-custom-workflows",
 };
 
 function isBrowser(): boolean {
@@ -114,4 +130,62 @@ export function addSubmission(
     submittedAt: new Date().toISOString(),
   });
   localStorage.setItem(KEYS.submissions, JSON.stringify(submissions));
+}
+
+// Bookmarks (saved library workflows by slug)
+export function getBookmarks(): string[] {
+  if (!isBrowser()) return [];
+  const data = localStorage.getItem(KEYS.bookmarks);
+  return data ? JSON.parse(data) : [];
+}
+
+export function toggleBookmark(slug: string): boolean {
+  const bookmarks = getBookmarks();
+  const idx = bookmarks.indexOf(slug);
+  if (idx >= 0) {
+    bookmarks.splice(idx, 1);
+  } else {
+    bookmarks.push(slug);
+  }
+  localStorage.setItem(KEYS.bookmarks, JSON.stringify(bookmarks));
+  return bookmarks.includes(slug);
+}
+
+export function isBookmarked(slug: string): boolean {
+  return getBookmarks().includes(slug);
+}
+
+export function getBookmarkCount(): number {
+  return getBookmarks().length;
+}
+
+// Custom workflows (from generator)
+export function getCustomWorkflows(): CustomWorkflow[] {
+  if (!isBrowser()) return [];
+  const data = localStorage.getItem(KEYS.customWorkflows);
+  return data ? JSON.parse(data) : [];
+}
+
+export function saveCustomWorkflow(
+  workflow: Omit<CustomWorkflow, "id" | "createdAt">
+): CustomWorkflow {
+  const all = getCustomWorkflows();
+  const saved: CustomWorkflow = {
+    ...workflow,
+    id: Math.random().toString(36).slice(2, 10),
+    createdAt: new Date().toISOString(),
+  };
+  all.unshift(saved);
+  localStorage.setItem(KEYS.customWorkflows, JSON.stringify(all));
+  return saved;
+}
+
+export function deleteCustomWorkflow(id: string) {
+  const all = getCustomWorkflows().filter((w) => w.id !== id);
+  localStorage.setItem(KEYS.customWorkflows, JSON.stringify(all));
+}
+
+// Toolkit count (bookmarks + custom)
+export function getToolkitCount(): number {
+  return getBookmarks().length + getCustomWorkflows().length;
 }

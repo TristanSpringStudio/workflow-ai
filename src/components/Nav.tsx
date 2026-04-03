@@ -2,15 +2,27 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { getToolkitCount, getBookmarks, getCustomWorkflows } from "@/lib/storage";
+import { workflows } from "@/lib/workflows";
 
 export default function Nav() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [toolkitOpen, setToolkitOpen] = useState(false);
+  const [toolkitCount, setToolkitCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const toolkitRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setToolkitCount(getToolkitCount());
+  }, [toolkitOpen]);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
+      }
+      if (toolkitRef.current && !toolkitRef.current.contains(e.target as Node)) {
+        setToolkitOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClick);
@@ -154,8 +166,83 @@ export default function Nav() {
 
         <div className="flex items-center gap-4">
           <Link href="/submit" className="text-[13px] text-muted hover:text-foreground transition-colors">
-            Submit a workflow
+            Submit
           </Link>
+
+          {/* Toolkit icon */}
+          <div ref={toolkitRef} className="relative">
+            <button
+              onClick={() => setToolkitOpen(!toolkitOpen)}
+              className="relative w-8 h-8 rounded-lg flex items-center justify-center text-muted hover:text-foreground hover:bg-surface transition-colors"
+            >
+              <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+              </svg>
+              {toolkitCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-accent text-white text-[9px] font-bold flex items-center justify-center">
+                  {toolkitCount}
+                </span>
+              )}
+            </button>
+
+            {toolkitOpen && (
+              <div className="absolute top-full right-0 mt-2 w-[300px] rounded-2xl bg-background border border-border shadow-lg overflow-hidden">
+                <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                  <span className="text-[13px] font-semibold">Your Toolkit</span>
+                  <Link href="/dashboard" onClick={() => setToolkitOpen(false)} className="text-[11px] text-accent hover:text-accent-hover">
+                    View all
+                  </Link>
+                </div>
+                <div className="max-h-[320px] overflow-y-auto p-2">
+                  {(() => {
+                    const bookmarkSlugs = getBookmarks();
+                    const custom = getCustomWorkflows();
+                    const bookmarked = bookmarkSlugs.map((s) => workflows.find((w) => w.slug === s)).filter(Boolean);
+
+                    if (bookmarked.length === 0 && custom.length === 0) {
+                      return (
+                        <div className="py-6 text-center">
+                          <p className="text-[12px] text-muted-light">No saved workflows yet</p>
+                          <p className="text-[11px] text-muted-light mt-1">Bookmark workflows or generate custom ones</p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <>
+                        {bookmarked.map((wf) => wf && (
+                          <Link
+                            key={wf.slug}
+                            href={`/workflow/${wf.slug}`}
+                            onClick={() => setToolkitOpen(false)}
+                            className="block px-3 py-2 rounded-lg hover:bg-surface transition-colors"
+                          >
+                            <p className="text-[12px] font-medium">{wf.title}</p>
+                            <p className="text-[10px] text-muted-light">{wf.subtitle}</p>
+                          </Link>
+                        ))}
+                        {custom.map((cw) => (
+                          <Link
+                            key={cw.id}
+                            href="/dashboard"
+                            onClick={() => setToolkitOpen(false)}
+                            className="block px-3 py-2 rounded-lg hover:bg-surface transition-colors"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-accent/10 text-accent">Custom</span>
+                              <p className="text-[12px] font-medium">{cw.title}</p>
+                            </div>
+                            <p className="text-[10px] text-muted-light mt-0.5">{cw.output}</p>
+                          </Link>
+                        ))}
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+          </div>
+
           <Link
             href="/generator"
             className="px-4 py-1.5 rounded-full text-[13px] font-medium bg-accent text-white hover:bg-accent-hover transition-colors"
