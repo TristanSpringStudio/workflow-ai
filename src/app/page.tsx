@@ -13,6 +13,7 @@ import {
 import { getProfile, getVotes, toggleVote, getTriedWorkflows } from "@/lib/storage";
 import MiniTrend from "@/components/MiniTrend";
 import ToolBadge from "@/components/ToolBadge";
+import Nav from "@/components/Nav";
 import Image from "next/image";
 
 export default function Home() {
@@ -42,33 +43,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      {/* Nav */}
-      <nav className="sticky top-0 z-20 bg-background/80 backdrop-blur-sm border-b border-border">
-        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <Link href="/" className="text-[15px] font-semibold tracking-tight">
-            WorkflowAI
-          </Link>
-          <div className="flex items-center gap-5">
-            <Link href="/library" className="text-[13px] text-muted hover:text-foreground transition-colors">
-              Library
-            </Link>
-            {hasProfile && (
-              <Link href="/picks" className="text-[13px] text-muted hover:text-foreground transition-colors">
-                My picks
-              </Link>
-            )}
-            <Link href="/submit" className="text-[13px] text-muted hover:text-foreground transition-colors">
-              Submit
-            </Link>
-            <Link
-              href="/quiz"
-              className="px-4 py-1.5 rounded-full text-[13px] font-medium bg-accent text-white hover:bg-accent-hover transition-colors"
-            >
-              Take the quiz
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <Nav />
 
       {/* Hero */}
       <header className="max-w-6xl mx-auto px-6 pt-16 pb-14">
